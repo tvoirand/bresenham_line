@@ -79,6 +79,12 @@ function bresenhamLine(x0, y0, x1, y1) {
   var dx = x1 - x0;
   var dy = y1 - y0;
 
+  // case of a point
+  if (dx == 0 && dy == 0) {
+    coordinates = [[x0, y0]];
+    return coordinates;
+  }
+
   // switching to Octant zero
   var octant = 0;
   if (dx >= 0 && dy >= 0 && dx <= dy) {
