@@ -123,6 +123,8 @@ function bresenhamLine(x0, y0, x1, y1) {
     D = D + 2 * dy;
   }
 
+  coordinates = coordinates.slice(1, coordinates.length); // slicing out first value, which is empty
+
   return coordinates;
 }
 
