@@ -3,12 +3,13 @@ script.js for bresenham_line
 author: thibaut voirand
 */
 
-// declaring canvas related variables
+/*Declaring variables*******************************************************************************
+***************************************************************************************************/
+
+// canvas related variables
 var canvas = document.getElementById('canvasId');
-var canvasWidth = canvas.width;
-var canvasHeight = canvas.height;
 var canvasContext = canvas.getContext('2d');
-var canvasData = canvasContext.getImageData(0, 0, canvasWidth, canvasHeight);
+var canvasData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
 
 // pixel color and transparency
 var rPixel = 255; // red
@@ -16,9 +17,17 @@ var gPixel = 0; // green
 var bPixel = 0; // blue
 var aPixel = 255; // transparency
 
-// drawing pixel by pixel on the canvas: defining the value of a pixel
+// input coordinates
+var x0;
+var y0;
+var x1;
+var y1;
+
+/*Functions*****************************************************************************************
+***************************************************************************************************/
+
 function drawPixel(x, y, r, g, b, a) {
-  var index = (x + y * canvasWidth) * 4;
+  var index = (x + y * canvas.width) * 4;
 
   canvasData.data[index + 0] = r;
   canvasData.data[index + 1] = g;
@@ -26,66 +35,19 @@ function drawPixel(x, y, r, g, b, a) {
   canvasData.data[index + 3] = a;
 }
 
-// drawing pixel by pixel on the canvas: update the canvas
 function updateCanvas() {
   canvasContext.putImageData(canvasData, 0, 0);
 }
 
-// switching coordinates octant for bresenham line algorithm
-function switchToOctantZeroFrom(octant, x, y) {
-  if (octant == 0) {
-    return [x, y];
-  } else if (octant == 1) {
-    return [y, x];
-  } else if (octant == 2) {
-    return [y, -x];
-  } else if (octant == 3) {
-    return [-x, y];
-  } else if (octant == 4) {
-    return [-x, -y];
-  } else if (octant == 5) {
-    return [-y, -x];
-  } else if (octant == 6) {
-    return [-y, x];
-  } else if (octant == 7) {
-    return [x, -y];
-  }
-}
-
-// switching coordinates octant for bresenham line algorithm
-function switchFromOctantZeroTo(octant, x, y) {
-  if (octant == 0) {
-    return [x, y];
-  } else if (octant == 1) {
-    return [y, x];
-  } else if (octant == 2) {
-    return [-y, x];
-  } else if (octant == 3) {
-    return [-x, y];
-  } else if (octant == 4) {
-    return [-x, -y];
-  } else if (octant == 5) {
-    return [-y, -x];
-  } else if (octant == 6) {
-    return [y, -x];
-  } else if (octant == 7) {
-    return [x, -y];
-  }
-}
-
-// bresenham line algorithm
-function bresenhamLine(x0, y0, x1, y1) {
-  var coordinates = [[]]; // coordinates array
-  var dx = x1 - x0;
-  var dy = y1 - y0;
-
-  // case of a point
-  if (dx == 0 && dy == 0) {
-    coordinates = [[x0, y0]];
-    return coordinates;
-  }
-
-  // switching to Octant zero
+function getOctant(dx, dy) {
+  /*
+  Returns the octant in which a line is, in the following scheme, with starting point at center:
+  \2|1/
+  3\|/0
+ ---+---
+  4/|\7
+  /5|6\
+  */
   var octant = 0;
   if (dx >= 0 && dy >= 0 && dx <= dy) {
     // octant 1
@@ -109,52 +71,115 @@ function bresenhamLine(x0, y0, x1, y1) {
     // octant 7
     octant = 7;
   }
+  return octant;
+}
+
+function switchToOctantZeroFrom(octant, x, y) {
+  /*
+  Function to apply on starting and ending points coordinates, to move the line's from original
+  octant to octant zero
+  */
+  if (octant == 0) {
+    return [x, y];
+  } else if (octant == 1) {
+    return [y, x];
+  } else if (octant == 2) {
+    return [y, -x];
+  } else if (octant == 3) {
+    return [-x, y];
+  } else if (octant == 4) {
+    return [-x, -y];
+  } else if (octant == 5) {
+    return [-y, -x];
+  } else if (octant == 6) {
+    return [-y, x];
+  } else if (octant == 7) {
+    return [x, -y];
+  }
+}
+
+function switchFromOctantZeroTo(octant, x, y) {
+  /*
+  Function to apply on starting and ending points coordinates, to move the line's from octant zero
+  back to original octant
+  */
+  if (octant == 0) {
+    return [x, y];
+  } else if (octant == 1) {
+    return [y, x];
+  } else if (octant == 2) {
+    return [-y, x];
+  } else if (octant == 3) {
+    return [-x, y];
+  } else if (octant == 4) {
+    return [-x, -y];
+  } else if (octant == 5) {
+    return [-y, -x];
+  } else if (octant == 6) {
+    return [y, -x];
+  } else if (octant == 7) {
+    return [x, -y];
+  }
+}
+
+function drawBresenhamLine(x0, y0, x1, y1, octant){
+
   [x0, y0] = switchToOctantZeroFrom(octant, x0, y0);
   [x1, y1] = switchToOctantZeroFrom(octant, x1, y1);
 
-  //initialisation
-  dx = x1 - x0;
-  dy = y1 - y0;
+  var dx = x1 - y0;
+  var dy = y1 - y0;
   var D = 2 * dy - dx;
   var y = y0; //
 
   for (x = x0; x < x1; x++) {
-    // filling coordinates array and switching back to starting octant
-    coordinates.push(switchFromOctantZeroTo(octant, x, y));
-    if (D > 0) {
-      y = y + 1;
-      D = D - 2 * dx;
-    }
-
-    D = D + 2 * dy;
-  }
-
-  coordinates = coordinates.slice(1, coordinates.length); // slicing out first value, which is empty
-
-  return coordinates;
-}
-
-document.getElementById('drawButton').onclick = function() {
-  // getting input parameters
-  var x0Input = parseInt(document.getElementById('x0Input').value);
-  var y0Input = parseInt(document.getElementById('y0Input').value);
-  var x1Input = parseInt(document.getElementById('x1Input').value);
-  var y1Input = parseInt(document.getElementById('y1Input').value);
-
-  // obtaining coordinates of pixels forming line using bresenham's algorithm
-  var lineCoordinates = bresenhamLine(x0Input, y0Input, x1Input, y1Input);
-
-  // drawing pixels
-  var j;
-  for (j = 0; j < lineCoordinates.length; j++) {
+    // switching back to starting octant and drawing pixels
     drawPixel(
-      lineCoordinates[j][0],
-      lineCoordinates[j][1],
+      switchFromOctantZeroTo(octant, x, y)[0],
+      switchFromOctantZeroTo(octant, x, y)[1],
       rPixel,
       gPixel,
       bPixel,
       aPixel
     );
+    if (D > 0) {
+      y = y + 1;
+      D = D - 2 * dx;
+    }
+    D = D + 2 * dy;
   }
+}
+
+function getInputCoordinates(){
+  /*
+  This function assigns user-entered coordinates to the corresponding variables
+  */
+  x0 = parseInt(document.getElementById('x0Input').value);
+  y0 = parseInt(document.getElementById('y0Input').value);
+  x1 = parseInt(document.getElementById('x1Input').value);
+  y1 = parseInt(document.getElementById('y1Input').value);
+}
+
+/*User-Interaction**********************************************************************************
+***************************************************************************************************/
+
+document.getElementById('drawButton').onclick = function drawButton() {
+
+  getInputCoordinates();
+
+  var dx = x1 - x0;
+  var dy = y1 - y0;
+
+  // case of a single point
+  if (dx == 0 && dy == 0) {
+    drawPixel(x0, y0, rPixel, gPixel, bPixel, aPixel);
+    updateCanvas();
+    break;
+  }
+
+  var octant = getOctant(dx, dy);
+
+  drawBresenhamLine(x0, y0, x1, y1, octant);
+
   updateCanvas();
 };
