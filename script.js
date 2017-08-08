@@ -39,6 +39,15 @@ function updateCanvas() {
   canvasContext.putImageData(canvasData, 0, 0);
 }
 
+function clearCanvas() {
+  var j;
+  for (j = 0; j < canvasData.data.length; j++) {
+    canvasData.data[j] = 0;
+  }
+
+  updateCanvas();
+}
+
 function getOctant(dx, dy) {
   /*
   Returns the octant in which a line is, in the following scheme, with starting point at center:
@@ -122,8 +131,7 @@ function switchFromOctantZeroTo(octant, x, y) {
   }
 }
 
-function drawBresenhamLine(x0, y0, x1, y1, octant){
-
+function drawBresenhamLine(x0, y0, x1, y1, octant) {
   [x0, y0] = switchToOctantZeroFrom(octant, x0, y0);
   [x1, y1] = switchToOctantZeroFrom(octant, x1, y1);
 
@@ -150,7 +158,7 @@ function drawBresenhamLine(x0, y0, x1, y1, octant){
   }
 }
 
-function getInputCoordinates(){
+function getInputCoordinates() {
   /*
   This function assigns user-entered coordinates to the corresponding variables
   */
@@ -164,7 +172,6 @@ function getInputCoordinates(){
 ***************************************************************************************************/
 
 document.getElementById('drawButton').onclick = function drawButton() {
-
   getInputCoordinates();
 
   var dx = x1 - x0;
@@ -174,7 +181,7 @@ document.getElementById('drawButton').onclick = function drawButton() {
   if (dx == 0 && dy == 0) {
     drawPixel(x0, y0, rPixel, gPixel, bPixel, aPixel);
     updateCanvas();
-    break;
+    return;
   }
 
   var octant = getOctant(dx, dy);
@@ -182,4 +189,8 @@ document.getElementById('drawButton').onclick = function drawButton() {
   drawBresenhamLine(x0, y0, x1, y1, octant);
 
   updateCanvas();
+};
+
+document.getElementById('clearButton').onclick = function() {
+  clearCanvas();
 };
